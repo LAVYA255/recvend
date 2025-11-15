@@ -3,26 +3,20 @@ import { v4 as uuid } from "uuid";
 
 const router = express.Router();
 
-/**
- * Plivo Answer URL
- * Method: POST
- * Path:   /plivo/incoming
- *
- * On incoming call, Plivo will POST here.
- * We respond with XML that tells Plivo to start a bidirectional audio Stream
- * to our WebSocket endpoint: wss://DOMAIN/ws/plivo?callId=...
- */
 router.post("/plivo/incoming", (req, res) => {
-  const callId = uuid();
+  console.log("📞 /plivo/incoming HIT");
+  console.log("Caller Number:", req.body.From);
 
-  console.log("📞 New incoming Plivo call:", callId);
+  const callId = uuid();
+  console.log("🔐 Generated Call ID:", callId);
 
   const domain = process.env.DOMAIN;
   if (!domain) {
-    console.error("❌ DOMAIN not set in .env");
+    console.error("❌ DOMAIN missing in .env");
   }
 
   const wsUrl = `wss://${domain}/ws/plivo?callId=${callId}`;
+  console.log("🌐 Stream URL:", wsUrl);
 
   const xml = `
 <Response>
@@ -33,6 +27,8 @@ router.post("/plivo/incoming", (req, res) => {
 
   res.set("Content-Type", "text/xml");
   res.send(xml);
+
+  console.log("📡 Responded with Stream XML");
 });
 
 export default router;

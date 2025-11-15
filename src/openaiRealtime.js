@@ -2,11 +2,12 @@ import WebSocket from "ws";
 
 export function connectToOpenAI(callId) {
   return new Promise((resolve, reject) => {
+    console.log("🔗 Connecting to OpenAI Realtime for call:", callId);
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      console.error("❌ OPENAI_API_KEY missing in .env");
-      reject(new Error("Missing OPENAI_API_KEY"));
-      return;
+      console.error("❌ OPENAI_API_KEY missing");
+      return reject(new Error("Missing OPENAI_API_KEY"));
     }
 
     const model = "gpt-4o-realtime-preview";
@@ -22,13 +23,14 @@ export function connectToOpenAI(callId) {
     );
 
     ws.on("open", () => {
-      console.log("🧠 OpenAI Realtime connected for call:", callId);
+      console.log("🧠 OpenAI Realtime CONNECTED for call:", callId);
 
       const instructions =
         process.env.AI_ASSISTANT_PROMPT ||
-        "You are a friendly phone assistant.";
+        "You are a helpful voice assistant.";
 
-      // Configure realtime session
+      console.log("⚙️ Sending session.update config to Realtime");
+
       ws.send(
         JSON.stringify({
           type: "session.update",
@@ -37,19 +39,32 @@ export function connectToOpenAI(callId) {
             modalities: ["audio", "text"],
             input_audio_format: "pcm16",
             output_audio_format: "pcm16",
-            voice: "cedar", // or 'alloy' if cedar isn't available
+            voice: "cedar",
 
-            // Enable server VAD so model auto-detects turns & responds
             turn_detection: {
               type: "server_vad",
               threshold: 0.5,
               silence_duration_ms: 500,
             },
 
-            // Enable transcription of caller input (Whisper-like)
             input_audio_transcription: {
               model: "whisper-1",
             },
+
+            tools: [
+              {
+                type: "function",
+                name: "hangup_call",
+                description: "Ends the call politely.",
+                parameters: {}
+              },
+              {
+                type: "function",
+                name: "decline_call",
+                description: "Declines the call immediately.",
+                parameters: {}
+              }
+            ]
           },
         })
       );
@@ -58,8 +73,12 @@ export function connectToOpenAI(callId) {
     });
 
     ws.on("error", (err) => {
-      console.error("❌ OpenAI WS error:", err);
+      console.error("❌ OpenAI WS ERROR:", err);
       reject(err);
+    });
+
+    ws.on("close", () => {
+      console.log("🔌 OpenAI WS CLOSED for call:", callId);
     });
   });
 }

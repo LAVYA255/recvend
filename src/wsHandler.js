@@ -5,19 +5,23 @@ export function handleWsUpgrade(server) {
   const wss = new WebSocketServer({ noServer: true });
 
   server.on("upgrade", (req, socket, head) => {
-    const url = req.url || "";
+    console.log("🔄 WS Upgrade request:", req.url);
 
-    if (url.startsWith("/ws/plivo")) {
+    if (req.url.startsWith("/ws/plivo")) {
+      console.log("🟢 Upgrading to Plivo WS");
+
       wss.handleUpgrade(req, socket, head, (ws) => {
         wss.emit("connection", ws, req);
       });
+
     } else {
+      console.log("🔴 Unknown WS path. Closing.");
       socket.destroy();
     }
   });
 
   wss.on("connection", (ws, req) => {
-    console.log("🔌 WebSocket connection established for", req.url);
+    console.log("🔌 Plivo WS connected:", req.url);
     handleBridge(ws, req);
   });
 }

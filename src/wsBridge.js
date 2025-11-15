@@ -68,9 +68,13 @@ export async function handleBridge(plivoWs, req) {
       console.log("🗣️ Sending AI voice to Plivo (delta)");
       plivoWs.send(
         JSON.stringify({
-          event: "media",
-          media: { payload: msg.delta },
-        })
+                                        event: "playAudio",
+                                        media: {
+                                            contentType: "audio/x-mulaw",
+                                            sampleRate: 8000,
+                                            payload: msg.delta,
+                                        },
+                                    })
       );
     }
 

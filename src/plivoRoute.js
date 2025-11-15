@@ -21,14 +21,21 @@ router.post("/plivo/incoming", (req, res) => {
   const xml = `
 <Response>
   <Speak>Connecting you to the assistant.</Speak>
-  <Stream bidirectional="true" audioTrack="outbound" streamUrl="${wsUrl}" />
+  <Stream 
+    streamUrl="${wsUrl}"
+    streamTimeout="86400"
+    keepCallAlive="true"
+    bidirectional="true"
+    contentType="audio/x-mulaw;rate=8000"
+    audioTrack="inbound"
+  />
 </Response>
 `.trim();
 
   res.set("Content-Type", "text/xml");
   res.send(xml);
 
-  console.log("📡 Responded with Stream XML");
+  console.log("📡 Responded with Stream XML + enhanced attributes");
 });
 
 export default router;

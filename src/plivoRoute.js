@@ -22,13 +22,14 @@ router.post("/plivo/incoming", (req, res) => {
 <Response>
   <Speak>Connecting you to the assistant.</Speak>
   <Stream 
-    streamUrl="${wsUrl}"
     streamTimeout="86400"
     keepCallAlive="true"
     bidirectional="true"
     contentType="audio/x-mulaw;rate=8000"
     audioTrack="inbound"
-  />
+  >
+  ${wsUrl}
+  </Stream>
 </Response>
 `.trim();
 
